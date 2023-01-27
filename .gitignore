@@ -1,0 +1,17 @@
+# .gitignore
+
+# dependencies
+node_modules/
+
+# production
+dist/
+
+# config files
+.env
+.env.local
+.env.*.local
+
+# Python virtual environment
+env/
+
+database.db

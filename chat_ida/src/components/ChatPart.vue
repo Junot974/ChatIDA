@@ -1,0 +1,128 @@
+<template>
+  <v-container>
+    <v-row>
+      <v-col cols="12" class="chat-zone">
+        <v-card class="bottom v-list">
+          <v-card-text >
+            <v-row v-for="message in messages" :key="message.id_conv">
+              <v-col cols="12" v-if="message.message_type === true">
+                <div class="user-message">
+                  {{ message.message }}
+                </div>
+              </v-col>
+              <v-col cols="12" v-else>
+                <div class="bot-message">
+                  {{ message.message }}
+                </div>
+              </v-col>
+            </v-row>
+          </v-card-text>
+          <v-card-actions>
+            <v-text-field v-model="newMessageUser" @keyup.enter="sendMessage" placeholder="Enter your message"></v-text-field>
+              <v-btn @click="sendMessage">Send</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<script>
+  export default {
+      data() {
+          return {
+          messages: [],
+          newMessageUser: '',
+          newMessageBot: '',
+          }
+      },
+      methods: {
+          async sendMessage() {
+            try {
+                const response = await fetch('/api/create_message_user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    newMessageUser: this.newMessageUser,
+                }),
+                })
+                if (!response.ok) {
+                  throw new Error(response.statusText)
+                }
+                this.messages.push({
+                    user: 'user',
+                    text: this.newMessageUser
+                })
+                this.newMessageUser = ''
+                this.getMessages();
+            } catch (error) {
+                console.error(error)
+            }
+          },
+          async getMessages() {
+            try {
+              const response = await fetch('/api/get_messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+              })
+              if (!response.ok) {
+                console.log(response)
+                throw new Error(response.statusText)
+              }
+              const data = await response.json()
+              console.log(data)
+              this.messages = data
+              this.getConvIdAndSend();
+            } catch (error) {
+              console.error(error)
+            }
+          },
+          async getConvIdAndSend() {
+            let currentConvId;
+            for (let i = 0; i < this.messages.length; i++) {
+              if (currentConvId === undefined) {
+                currentConvId = this.messages[i].id_conv;
+              } else if (currentConvId !== this.messages[i].id_conv) {
+                break;
+              }
+            }
+            try {
+              const response = await fetch(`/api/response_bot/${currentConvId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+              });
+              const data = await response.json();
+            } catch (err) {
+              console.error(err);
+            }
+          }
+      },
+      mounted() {
+          this.getMessages();
+      }
+  }
+</script>
+
+<style scoped>
+  .chat-zone {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  }
+
+  .chat-zone .v-list {
+  flex: 1;
+  overflow-y: auto;
+  }
+
+  .chat-zone .v-footer {
+  padding: 0.5em; /* pour ajouter un peu d'espacement */
+  }
+
+  .bottom{
+    position: absolute;
+    bottom: 0px;
+    width: 50%;
+    margin-left: 20%;
+  }
+</style>
