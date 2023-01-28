@@ -133,7 +133,6 @@ def responseBot(id_conv):
 
     inputs = tokenizer(prompt, return_tensors="pt")
 
-    #TODO Enlever les <s/> à la fin de la génération.
     response = tokenizer.decode(model.generate(**inputs, 
                         max_length=200,
                         top_k=50, 
@@ -165,10 +164,6 @@ def get_messages():
         return jsonify([])
 
 
-
-
-# TODO Faire un get_messages_bot pour afficher directement
-# TODO Faire en sorte que la réponse du bot s'affiche automatiquement et pas au prochain message
 # TODO Faire le système de session
 # TODO Faire le logout
 # TODO Ajouter les conversations
