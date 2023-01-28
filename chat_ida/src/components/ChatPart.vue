@@ -33,32 +33,35 @@
           return {
           messages: [],
           newMessageUser: '',
-          newMessageBot: '',
           }
       },
       methods: {
-          async sendMessage() {
-            try {
-                const response = await fetch('/api/create_message_user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    newMessageUser: this.newMessageUser,
-                }),
-                })
-                if (!response.ok) {
-                  throw new Error(response.statusText)
-                }
-                this.messages.push({
-                    user: 'user',
-                    text: this.newMessageUser
-                })
-                this.newMessageUser = ''
-                this.getMessages();
-            } catch (error) {
-                console.error(error)
-            }
-          },
+        async sendMessage() {
+          try {
+              const response = await fetch('/api/create_message_user', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      newMessageUser: this.newMessageUser,
+                  }),
+              });
+              if (!response.ok) {
+                  throw new Error(response.statusText);
+              }
+              const data = await response.json();
+              console.log(data)
+              // data.push({
+              //     user: 'user',
+              //     text: this.newMessageUser
+              // });
+              //this.messages = data
+              this.newMessageUser = ''
+              this.getMessages();
+              this.getConvIdAndSend();
+          } catch (error) {
+              console.error(error);
+          }
+        },
           async getMessages() {
             try {
               const response = await fetch('/api/get_messages', {
@@ -71,19 +74,27 @@
               }
               const data = await response.json()
               console.log(data)
-              this.messages = data
-              this.getConvIdAndSend();
+              this.messages = data.map(message => {
+                return {
+                    id_message: message.id_message,
+                    id_conv: message.id_conv,
+                    message: message.message,
+                    message_type: message.message_type
+                }
+              })
             } catch (error) {
               console.error(error)
             }
           },
           async getConvIdAndSend() {
-            let currentConvId;
-            for (let i = 0; i < this.messages.length; i++) {
-              if (currentConvId === undefined) {
-                currentConvId = this.messages[i].id_conv;
-              } else if (currentConvId !== this.messages[i].id_conv) {
-                break;
+            let currentConvId = 1;
+            if (this.messages && this.messages.length){
+              for (let i = 0; i < this.messages.length; i++) {
+                if (currentConvId === undefined) {
+                  currentConvId = this.messages[i].id_conv;
+                } else if (currentConvId !== this.messages[i].id_conv) {
+                  break;
+                }
               }
             }
             try {
@@ -98,8 +109,11 @@
           }
       },
       mounted() {
-          this.getMessages();
-      }
+        this.getMessages()
+        setInterval(() => {
+          this.getMessages()
+        }, 5000)
+      },
   }
 </script>
 

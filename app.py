@@ -143,8 +143,10 @@ def responseBot(id_conv):
                         num_beams = 4
                       )[0], truncate_before_pattern=[r"\n\n^#", "^'''", "\n\n\n"])
 
-    input_length = len(prompt)
-    response_bot = response[input_length:]
+    
+    prompt_index = response.find(prompt)
+    response_bot = response[prompt_index + len(prompt):]
+    response_bot = response_bot.rstrip("</s>")
 
     messages_bot = Messages(id_conv=id_conv, message=response_bot, message_type=False)
     db.session.add(messages_bot)
@@ -156,8 +158,14 @@ def responseBot(id_conv):
 @app.route('/api/get_messages', methods=['POST'])
 @login_required
 def get_messages():
-    messages = Messages.query.all()
-    return jsonify([m.serialize() for m in messages])
+    last_message = Messages.query.all()
+    if last_message:
+        return jsonify([message.serialize() for message in last_message])
+    else:
+        return jsonify([])
+
+
+
 
 # TODO Faire un get_messages_bot pour afficher directement
 # TODO Faire en sorte que la réponse du bot s'affiche automatiquement et pas au prochain message

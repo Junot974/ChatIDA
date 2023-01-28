@@ -15,3 +15,5 @@ dist/
 env/
 
 database.db
+
+.DS_Store
