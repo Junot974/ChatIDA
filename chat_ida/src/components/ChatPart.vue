@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row>
+    <v-row class="padding">
       <v-col cols="12" class="chat-zone">
         <v-card class="bottom v-list">
           <v-card-text >
@@ -17,7 +17,7 @@
               </v-col>
             </v-row>
           </v-card-text>
-          <v-card-actions>
+          <v-card-actions class="input-zone">
             <v-text-field v-model="newMessageUser" @keyup.enter="sendMessage" placeholder="Enter your message"></v-text-field>
               <v-btn @click="sendMessage">Send</v-btn>
           </v-card-actions>
@@ -118,7 +118,7 @@
 </script>
 
 <style scoped>
-  .chat-zone {
+  /*.chat-zone {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -130,7 +130,7 @@
   }
 
   .chat-zone .v-footer {
-  padding: 0.5em; /* pour ajouter un peu d'espacement */
+  padding: 0.5em;
   }
 
   .bottom{
@@ -138,5 +138,53 @@
     bottom: 0px;
     width: 50%;
     margin-left: 20%;
+  } */
+
+  .chat-zone {
+    height: 80vh;
+    overflow-y: scroll;
+    position: relative;
+    padding-left: 9%;
+    width: 100%;
   }
+  .input-zone {
+    position: fixed;
+    bottom: 0;
+    width: 80%;
+  }
+  .v-list {
+      background-color: #f6f6f6;
+  }
+
+  .user-message {
+      background-color: #4267b2;
+      color: white;
+      padding: 10px;
+      border-radius: 10px 10px 10px 0;
+      margin-bottom: 10px;
+      float: right;
+      clear: both;
+  }
+
+  .bot-message {
+      background-color: #e6e6e6;
+      color: black;
+      padding: 10px;
+      border-radius: 10px 10px 0 10px;
+      margin-bottom: 10px;
+      clear: both;
+      float:left;
+  }
+
+  .v-text-field {
+      width: 80%;
+  }
+
+  .padding{
+    padding-left: 30px;
+    width: 112%;
+  }
+
+
+
 </style>

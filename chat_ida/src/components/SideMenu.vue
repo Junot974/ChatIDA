@@ -43,23 +43,21 @@
 </script>
 
 <style scoped>
+
   .left-menu{
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+    height: 100%;
+    overflow-y: scroll;
   }
 
+  /* Style pour la zone de saisie de conversation */
   .left-menu .v-footer{
-      display: flex;
-      flex-direction: column;
-      margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
   }
 
-  .bottom{
-      height: 180vh;
-  }
-
-  .padding{
-      margin-left: 30px;
+  /* Style pour le bouton d'ajout de conversation */
+  .left-menu .v-footer .v-btn{
+    margin-left: 30px;
   }
 </style>
