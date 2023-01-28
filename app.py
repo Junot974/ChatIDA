@@ -78,11 +78,14 @@ class Messages(db.Model):
 
 id_conv = 1
 
-last_conv = Conversations.query.order_by(Conversations.id_conv.desc()).first()
-if last_conv is not None:
-    id_conv = last_conv.id_conv + 1
-else:
-    id_conv = 1
+
+
+if Conversations.query.exists() == False:
+    last_conv = Conversations.query.order_by(Conversations.id_conv.desc()).first()
+    if last_conv is not None:
+        id_conv = last_conv.id_conv + 1
+    else:
+        id_conv = 1
 
 
 @app.route('/api/register', methods=['POST'])
