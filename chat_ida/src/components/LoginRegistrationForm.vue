@@ -30,7 +30,6 @@
           <v-card-title class="text-h5 grey lighten-2">
             Identifiants incorectes
           </v-card-title>
-
           <v-card-text>
             Vos identifiants de connexion ne sont pas correctes.
             Veuillez recommencer.
@@ -48,6 +47,30 @@
           </v-card-actions>
         </v-card>
         </v-dialog>
+        <v-dialog
+        v-model="success_registration"
+        width="500"
+      >
+      <v-card>
+          <v-card-title class="text-h5 grey lighten-2">
+            Bienvenu !
+          </v-card-title>
+          <v-card-text>
+            Vous venez de vous inscrire. Veuillez retourner sur la page de connexion.
+          </v-card-text>
+          <v-divider></v-divider>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="primary"
+              text
+              @click="success_registration = false"
+            >
+              OK
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+        </v-dialog>
     </div>
   </template>
 
@@ -56,6 +79,7 @@
     data() {
       return {
         dialog: false,
+        success_registration:false,
         authentication: false,
         showRegistration: false,
         username: '',
@@ -87,6 +111,11 @@
         }
         const data = await response.json()
         console.log(data)
+        this.username = '';
+        this.email = '';
+        this.password = '';
+        this.success_registration = true;
+
       } catch (error) {
         console.error(error)
       }

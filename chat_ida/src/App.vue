@@ -2,7 +2,7 @@
   <v-app>
     <div>
       <LoginRegistrationForm v-if="!boolChat" @showChat="showChat" />
-      <ChatBot v-if="boolChat" @logout="logout"/>
+      <ChatBot v-if="boolChat" @logout="logout" @showChat="showChat"/>
     </div>
   </v-app>
 </template>
@@ -18,13 +18,10 @@ import ChatBot from './components/ChatBot.vue';
     data: function() {
       return {
         boolChat: false,
-        isAuthenticated: false
       }
     },
     methods: {
-      // isAuthenticate(){
-      //   this.isAuthenticated = true;
-      // },
+
       async showChat(){
         // console.log(this.isAuthenticated)
         // if(this.isAuthenticated){
@@ -32,7 +29,6 @@ import ChatBot from './components/ChatBot.vue';
         // }
       },
       logout(){
-        this.isAuthenticated = false,
         this.boolChat = false
       }
     }

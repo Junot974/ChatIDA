@@ -118,28 +118,6 @@
 </script>
 
 <style scoped>
-  /*.chat-zone {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  }
-
-  .chat-zone .v-list {
-  flex: 1;
-  overflow-y: auto;
-  }
-
-  .chat-zone .v-footer {
-  padding: 0.5em;
-  }
-
-  .bottom{
-    position: absolute;
-    bottom: 0px;
-    width: 50%;
-    margin-left: 20%;
-  } */
-
   .chat-zone {
     height: 80vh;
     overflow-y: scroll;
