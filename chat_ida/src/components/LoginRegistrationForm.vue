@@ -80,7 +80,7 @@
       return {
         dialog: false,
         success_registration:false,
-        authentication: false,
+        // authentication: false,
         showRegistration: false,
         username: '',
         email: '',

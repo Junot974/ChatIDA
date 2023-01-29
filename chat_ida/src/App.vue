@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <LoginRegistrationForm v-if="!boolChat" @showChat="showChat" />
-    <ChatBot v-if="boolChat" @logout="logout" @showChat="showChat"/>
+    <ChatBot v-if="boolChat" @logout="logout"/>
   </v-app>
 </template>
 
@@ -16,19 +16,30 @@ import ChatBot from './components/ChatBot.vue';
     data: function() {
       return {
         boolChat: false,
+        logout: false,
       }
     },
     methods: {
 
       async showChat(){
-        // console.log(this.isAuthenticated)
-        // if(this.isAuthenticated){
           this.boolChat = true;
-        // }
+
       },
-      logout(){
-        this.boolChat = false
-      }
+    //   async logout(){
+    //     try {
+    //         const response = await fetch('/api/logout', {
+    //           method: 'POST'
+    //         })
+    //         const data = await response.json()
+    //         if (!response.ok) {
+    //           throw new Error(data.message)
+    //         }
+    //         console.log("test")
+    //         this.boolChat = false;
+    //     } catch (error) {
+    //         console.log(error)
+    //     }
+    // }
     }
   }
 </script>

@@ -1,6 +1,7 @@
 <template>
   
         <v-card class="bottom v-list">
+          <v-card-title>{{ nom_conversation }} </v-card-title>
           <v-card-text >
             <v-row v-for="message in messages" :key="message.id_conv">
               <v-col cols="12" v-if="message.message_type === true">
@@ -16,7 +17,7 @@
             </v-row>
           </v-card-text>
           <v-card-actions class="input-zone">
-            <v-text-field v-model="newMessageUser" @keyup.enter="sendMessage" placeholder="Enter your message"></v-text-field>
+            <v-text-field v-model="newMessageUser" @keyup.enter="sendMessage" :disabled="!botReplied" placeholder="Enter your message" ></v-text-field>
               <v-btn @click="sendMessage">Send</v-btn>
           </v-card-actions>
         </v-card>
@@ -29,10 +30,13 @@
           return {
           messages: [],
           newMessageUser: '',
+          nom_conversation: '',
+          botReplied: true
           }
       },
       methods: {
         async sendMessage() {
+          console.log(this.nom_conversation)
           try {
               const response = await fetch('/api/create_message_user', {
                   method: 'POST',
@@ -46,14 +50,10 @@
               }
               const data = await response.json();
               console.log(data)
-              // data.push({
-              //     user: 'user',
-              //     text: this.newMessageUser
-              // });
-              //this.messages = data
               this.newMessageUser = ''
               this.getMessages();
               this.getConvIdAndSend();
+              this.botReplied = false
           } catch (error) {
               console.error(error);
           }
@@ -83,29 +83,45 @@
             }
           },
           async getConvIdAndSend() {
-            let currentConvId = 1;
-            if (this.messages && this.messages.length){
-              for (let i = 0; i < this.messages.length; i++) {
-                if (currentConvId === undefined) {
-                  currentConvId = this.messages[i].id_conv;
-                } else if (currentConvId !== this.messages[i].id_conv) {
-                  break;
-                }
-              }
-            }
             try {
-              const response = await fetch(`/api/response_bot/${currentConvId}`, {
+              const response = await fetch(`/api/response_bot`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
               });
               const data = await response.json();
+              this.botReplied = true
             } catch (err) {
               console.error(err);
             }
-          }
+          },
+          // async createConversation() {
+          //   try {
+          //     if (this.newMessageUser == undefined) {
+          //       this.nom_conversation = "Conversation"
+          //     } else {
+          //       this.nom_conversation = this.newMessageUser.substring(0, this.newMessageUser.length)
+          //     }
+          //     const response = await fetch('/api/create_conversation', {
+          //         method: 'POST',
+          //         headers: { 'Content-Type': 'application/json' },
+          //         body: JSON.stringify({
+          //           nom_conversation: this.newMessageUser.substring(0, this.newMessageUser.length)
+          //         })
+          //       })
+          //       if (!response.ok) {
+          //           throw new Error(response.statusText);
+          //       }
+          //       const data = await response.json();
+          //       console.log(data);
+          //       this.nom_conversation = data.nom_conv
+          //   } catch (error) {
+          //       console.error(error);
+          //   }
+          // },
       },
       mounted() {
         this.getMessages()
+        //this.createConversation()
         setInterval(() => {
           this.getMessages()
         }, 5000)
