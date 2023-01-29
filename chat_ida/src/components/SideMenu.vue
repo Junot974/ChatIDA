@@ -1,17 +1,19 @@
 <template>
   <v-navigation-drawer v-model="drawer" app>
-    <v-content>
+    <v-content class="top-nav">
       <v-list>
         <v-list-item v-for="conversation in conversations" :key="conversation.id">
-          {{ conversation.name }}
-          <v-btn color="error" @click="deleteConversation(conversation.id)">Delete</v-btn>
+          <v-container class="conv-conatainer">
+            {{ conversation.name }}
+            <v-btn color="error" @click="deleteConversation(conversation.id)">Delete</v-btn>
+          </v-container>
         </v-list-item>
       </v-list>
       <v-btn @click="addConversation" color="blue" class="padding">Add Conversation</v-btn>
     </v-content>
-    <v-footer class="bottom">
+    <v-content class="bottom-nav">
       <v-btn @click="logout" color="red">Logout</v-btn>
-    </v-footer>
+    </v-content>
   </v-navigation-drawer>
 </template>
 

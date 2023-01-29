@@ -1,7 +1,5 @@
 <template>
-  <v-container>
-    <v-row class="padding">
-      <v-col cols="12" class="chat-zone">
+  
         <v-card class="bottom v-list">
           <v-card-text >
             <v-row v-for="message in messages" :key="message.id_conv">
@@ -22,9 +20,7 @@
               <v-btn @click="sendMessage">Send</v-btn>
           </v-card-actions>
         </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+   
 </template>
 
 <script>

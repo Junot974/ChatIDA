@@ -1,9 +1,7 @@
 <template>
   <v-app>
-    <div>
-      <LoginRegistrationForm v-if="!boolChat" @showChat="showChat" />
-      <ChatBot v-if="boolChat" @logout="logout" @showChat="showChat"/>
-    </div>
+    <LoginRegistrationForm v-if="!boolChat" @showChat="showChat" />
+    <ChatBot v-if="boolChat" @logout="logout" @showChat="showChat"/>
   </v-app>
 </template>
 
