@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from datetime import timedelta
+from flask import Flask, request, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
@@ -6,13 +7,15 @@ from flask_cors import CORS
 import os
 from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
 import torch
+from sqlalchemy import DateTime, func
+from flask_session import Session
+
 
 model = AutoModelForCausalLM.from_pretrained("bigscience/bloomz-560m", use_cache=True)
 tokenizer = AutoTokenizer.from_pretrained("bigscience/bloomz-560m")
 
 set_seed(424242)
 
-from sqlalchemy import DateTime, func
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -20,6 +23,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] =\
         'sqlite:///' + os.path.join(basedir, 'database.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
 
 app.secret_key = 'Moradvaalasalledesporttouslesjoursmaisceestchaudilbouffetoutletempsmaisilneprendpasdepoidsetcestunrageux'
 
@@ -27,13 +32,10 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-CORS(app)
-
-app.app_context().push()
-
-login_manager = LoginManager()
-login_manager.init_app(app)
 login_manager.login_view = "login"
+CORS(app)
+app.permanent_session_lifetime= timedelta(minutes = 5)
+app.app_context().push()
 
 
 
@@ -78,11 +80,10 @@ class Messages(db.Model):
 
 id_conv = 1
 
-last_conv = Conversations.query.order_by(Conversations.id_conv.desc()).first()
-if last_conv is not None:
-    id_conv = last_conv.id_conv + 1
-else:
-    id_conv = 1
+if Conversations.query.exists() == False:
+    last_conv = Conversations.query.order_by(Conversations.id_conv.desc()).first()
+    if last_conv is not None:
+        id_conv = last_conv.id_conv + 1
 
 
 @app.route('/api/register', methods=['POST'])
@@ -91,8 +92,7 @@ def register():
     hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
     user = User(username=data['username'], email=data['email'], password=hashed_password)
     db.session.add(user)
-    db.session.commit()
-    #faire une popup et dire qu'on a bien créer un compte 
+    db.session.commit() 
     return jsonify({'message': 'User created'})
 
 @app.route('/api/login', methods=['POST'])
@@ -101,16 +101,20 @@ def login():
     user = User.query.filter_by(username=data['usernameOrEmail']).first() or User.query.filter_by(email=data['usernameOrEmail']).first()
     if user and bcrypt.check_password_hash(user.password, data['password']):
         login_user(user, remember=data['rememberMe'])
+        session['username'] = data['usernameOrEmail']
+        session.permanent = True
         return jsonify({'message': 'Logged in', 'authenticated': True}), 200
     else:
         return jsonify({'message': 'Invalid credentials', 'authenticated': False}), 401
 
 
-@app.route('/api/logout')
+@app.route('/api/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()
-    return jsonify({'message': 'Logged out'})
+    session.pop("user", None)
+    return jsonify({'message': 'Logged out', 'authenticated': False}), 200
+
 
 @app.route('/api/create_message_user', methods=['POST'])
 @login_required
@@ -122,27 +126,44 @@ def createMessage():
     db.session.commit()
     return jsonify({'message': 'Messages added'})
 
-@app.route('/api/response_bot/<int:id_conv>', methods=['POST'])
+@app.route('/api/create_conversation', methods=['POST'])
 @login_required
-def responseBot(id_conv):
+def create_conversation():
+    data = request.get_json()
+    nom_conversation = data['nom_conversation']
+    conversation = Conversations(id_conv=id_conv, nom_conv=nom_conversation )
+    db.session.add(conversation)
+    db.session.commit()
+    return jsonify({'message': 'Conversations added'}) 
+
+@app.route('/api/response_bot', methods=['POST'])
+@login_required
+def responseBot():
 
     conversation_active = Messages.query.filter_by(id_conv=id_conv).all()
     messages = [i.message for i in conversation_active]
 
     prompt = " ".join(messages)
+    prompt = prompt[:1000]
 
     inputs = tokenizer(prompt, return_tensors="pt")
 
-    response = tokenizer.decode(model.generate(**inputs, 
-                        max_length=200,
-                        top_k=50, 
-                        top_p=0.9,
-                        temperature=0.7, 
-                        repetition_penalty = 1.2,
-                        num_beams = 4
+    # response = tokenizer.decode(model.generate(**inputs, 
+    #                     max_length=1500,
+    #                     top_k=50, 
+    #                     top_p=0.9,
+    #                     temperature=0.7, 
+    #                     repetition_penalty = 1.2,
+    #                     num_beams = 4
+    #                   )[0], truncate_before_pattern=[r"\n\n^#", "^'''", "\n\n\n"])
+    
+    response= tokenizer.decode(model.generate(**inputs,
+                       max_length=1500, 
+                       num_beams=2, 
+                       no_repeat_ngram_size=2,
+                       early_stopping=True
                       )[0], truncate_before_pattern=[r"\n\n^#", "^'''", "\n\n\n"])
 
-    
     prompt_index = response.find(prompt)
     response_bot = response[prompt_index + len(prompt):]
     response_bot = response_bot.rstrip("</s>")
@@ -163,8 +184,32 @@ def get_messages():
     else:
         return jsonify([])
 
+@app.route('/api/get_conversation/<int:id_conv>', methods=['GET'])
+@login_required
+def get_conversation(id_conv):
+    conversation = Conversations.query.filter_by(id_conv=id_conv)
+    if conversation:
+        return jsonify(conversation.serialize())
+    else:
+        return jsonify({'error': 'Conversation not found'})
 
-# TODO Faire le système de session
+# @app.route('/api/delete_conversation/<int:id_conv>', methods=['POST'])
+# def delete_conversation(id_conv):
+#     # Récupérer la conversation à supprimer
+#     conversation = Conversations.query.filter_by(id_conv=id_conv).first()
+#     if conversation:
+#         # Récupérer tous les messages associés à cette conversation
+#         messages = Messages.query.filter_by(id_conv=id_conv).all()
+#         # Supprimer tous les messages
+#         for message in messages:
+#             db.session.delete(message)
+#         # Supprimer la conversation
+#         db.session.delete(conversation)
+#         db.session.commit()
+#         return True
+#     else:
+#         return False
+    
 # TODO Faire le logout
 # TODO Ajouter les conversations
 

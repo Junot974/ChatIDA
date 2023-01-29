@@ -10,7 +10,7 @@
       <v-btn @click="addConversation" color="blue" class="padding">Add Conversation</v-btn>
     </v-content>
     <v-footer class="bottom">
-      <v-btn @click="logout" color="red">Logout</v-btn>
+      <v-btn @click="logout = false" color="red" @submit.prevent="logout">Logout</v-btn>
     </v-footer>
   </v-navigation-drawer>
 </template>
@@ -21,7 +21,8 @@
   data() {
       return {
       drawer: true,
-      conversations: []
+      conversations: [],
+      logout: false,
       }
   },
   methods: {
@@ -29,8 +30,7 @@
       // Code pour ajouter une conversation
       },
       deleteConversation() {
-      // Code pour supprimer une conversation
-      // mettre id en param
+        // /api/delete_conversation/
       },
       logout() {
         this.$emit("logout")
